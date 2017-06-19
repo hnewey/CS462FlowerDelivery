@@ -1,0 +1,16 @@
+ruleset io.picolabs.use_twilio_v2 {
+  meta {
+    use module twilio_keys 
+    use module twilio
+        with account_sid = keys:twilio("account_sid")
+             auth_token =  keys:twilio("auth_token")
+  }
+ 
+  rule send_sms {
+    select when notify new_message
+    twilio:send_sms(event:attr("to"),
+                    event:attr("from"),
+                    event:attr("message")
+                   )
+  }
+}
