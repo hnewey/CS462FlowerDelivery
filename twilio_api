@@ -1,4 +1,4 @@
-ruleset twilio {
+ruleset twilio_api {
   meta {
     configure using account_sid = ""
                     auth_token = ""
@@ -11,10 +11,11 @@ ruleset twilio {
        base_url = <<https://#{account_sid}:#{auth_token}@api.twilio.com/2010-04-01/Accounts/#{account_sid}/>>
        http:post(base_url + "Messages.json")
             with form = {
-                "From":from,
                 "To":to,
+                "From":from,
                 "Body":message
             }
     }
   }
 }
+
