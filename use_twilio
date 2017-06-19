@@ -1,4 +1,4 @@
-ruleset io.picolabs.use_twilio_v2 {
+ruleset use_twilio {
   meta {
     use module twilio_keys 
     use module twilio

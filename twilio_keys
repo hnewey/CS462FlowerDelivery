@@ -1,4 +1,4 @@
-ruleset io.picolabs.lesson_keys {
+ruleset twilio_keys {
   meta {
     key twilio {
           "account_sid": "<our account SID here>", 
