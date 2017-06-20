@@ -4,7 +4,7 @@
 //       order = event:attr("orderNumber").klog("order")
 //       address = event:attr("address").klog("address")
 //       order = event:attr("order").klog("order")
-The 
+// The 
 
 ruleset gossip {
   meta {
