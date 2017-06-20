@@ -8,6 +8,6 @@ ruleset test_edmunds_api {
 	rule test_api {
 		select when test vin
     send_directive("VIN") with
-				VIN = edmonds_api:get_mpg(event:attr("vin").defaultsTo("JNKCV51E06M521497"))
+				VIN = edmunds_api:find_vin(event:attr("vin").defaultsTo("JNKCV51E06M521497"))
 	}
 }

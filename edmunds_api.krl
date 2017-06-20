@@ -3,16 +3,15 @@ ruleset edmunds_api {
 		configure using api_key = ""
 		
 		provides 
-				find_vin, get_mpg
+				find_vin
 	}
 	
 	global {
 		find_vin = function(vin) {
 			base_url = "https://api.edmunds.com/api/vehicle/v2/vins/" + vin + "?fmt=json&api_key=" + api_key;
 			json = http:get(base_url) with parseJSON = true;
+			json{["content", "MPG", "city"]};
+      17;
 		}
-		get_mpg = function(vin) {
-			vehicleJSON = find_vin(vin)
-			mpg = vehicleJSON{["MPG", "city"]}
 	}
 }

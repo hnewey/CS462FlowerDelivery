@@ -11,12 +11,14 @@ ruleset gossip {
     name "gossip"
     use module io.picolabs.pico alias wrangler
     use module Subscriptions
+		use module edmunds_keys
+		use module edmunds_api
+										with api_key = keys:edmunds("api_key")
     shares allMessages, unorgMessages, listSchedule
   }
   global {
-    // TODO: implement this
     getProposal = function () {
-
+			proposal = edmunds_api:find_vin("JNKCV51E06M521497")
     }
     allMessages = function() {
       ent:all_messages.unique().filter(function(x){not x.isnull()})
@@ -258,4 +260,19 @@ ruleset gossip {
       ent:all_messages := ent:all_messages.defaultsTo([]).append(message)
     }
   }
+	rule place_bid {
+		select when driver bid
+		pre {
+			delivery_charge = getProposal()
+			order_id = event:attr("orderID")
+			//flowershop_id = ""  **Set flowershop pico eci here
+		}
+        event:send({
+          "eci": flowershop_id, "eic": "bid",
+          "domain": "shop", "type": "handle_bid",
+          "attrs": {
+            "delivery_charge": delivery_charge, "order_id": order_id, "driver_id": meta:eci
+          }
+        })
+
 }
