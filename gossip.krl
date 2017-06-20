@@ -4,22 +4,22 @@
 //       order = event:attr("orderNumber").klog("order")
 //       address = event:attr("address").klog("address")
 //       order = event:attr("order").klog("order")
-The 
+// The 
 
 ruleset gossip {
   meta {
     name "gossip"
     use module io.picolabs.pico alias wrangler
     use module Subscriptions
-		use module edmunds_keys
-		use module edmunds_api
-										with api_key = keys:edmunds("api_key")
+    use module edmunds_keys
+    use module edmunds_api
+                    with api_key = keys:edmunds("api_key")
     shares allMessages, unorgMessages, listSchedule
   }
   global {
     getProposal = function () {
-			proposal = edmunds_api:find_vin("JNKCV51E06M521497")
-    }
+       edmunds_api:find_vin("JNKCV51E06M521497")
+     }
     allMessages = function() {
       ent:all_messages.unique().filter(function(x){not x.isnull()})
     }
@@ -79,6 +79,30 @@ ruleset gossip {
       }).reduce(function(a,b){a.append(b)})
     }
   }
+  rule place_bid {
+    select when job bid
+    pre {
+      flowershopId = event:attr("flowershopId")
+      jobNum = event:attr("jobNum")
+    }
+  }
+  rule job_confirmed {
+    select when job confirmed
+    pre {
+      // todo: do things here
+    }
+    always {
+      schedule job event "arrived" at time:add(time:now(), {"seconds": 5})
+        attributes event:attrs()
+    }
+
+  }
+  rule job_completed {
+    select when job arrived
+    pre {
+      //todo: fill this out
+    }
+  }
   rule receive_message {
     select when order received
     pre {
@@ -86,17 +110,36 @@ ruleset gossip {
       order = event:attr("orderNumber").klog("order")
       address = event:attr("address").klog("address")
       order = event:attr("order").klog("order")
+      message = {"MessageID": flowershopId + ":" + ent:messages{[flowershopId]}.length(),
+                 "flowershopId": flowershopId, "order": order, "address": address}
     }
+    
     always {
       
       ent:messages := ent:messages.defaultsTo({});
       ent:messages{[flowershopId]} := ent:messages{[flowershopId]}.defaultsTo([]);
-      message = {"MessageID": flowershopId + ":" + ent:messages{[flowershopId]}.length(),
-                 "flowershopId": flowershopId, "order": order, "address": address};
       ent:all_messages := ent:all_messages.defaultsTo([]).append(message);
       ent:messages{[flowershopId]} := ent:messages{[flowershopId]}.append(message)
     }
   }
+  // rule receive_message {
+  //   select when order received
+  //   pre {
+  //     flowershopId = event:attr("flowershopId").klog("flowershopId")
+  //     order = event:attr("orderNumber").klog("order")
+  //     address = event:attr("address").klog("address")
+  //     order = event:attr("order").klog("order")
+  //   }
+  //   always {
+      
+  //     ent:messages := ent:messages.defaultsTo({});
+  //     ent:messages{[flowershopId]} := ent:messages{[flowershopId]}.defaultsTo([]);
+  //     message = {"MessageID": flowershopId + ":" + ent:messages{[flowershopId]}.length(),
+  //                "flowershopId": flowershopId, "order": order, "address": address};
+  //     ent:all_messages := ent:all_messages.defaultsTo([]).append(message);
+  //     ent:messages{[flowershopId]} := ent:messages{[flowershopId]}.append(message)
+  //   }
+  // }
   rule gossip_switch {
     select when process gossip_switch
     pre {
@@ -260,13 +303,13 @@ ruleset gossip {
       ent:all_messages := ent:all_messages.defaultsTo([]).append(message)
     }
   }
-	rule place_bid {
-		select when driver bid
-		pre {
-			delivery_charge = getProposal()
-			order_id = event:attr("orderID")
-			//flowershop_id = ""  **Set flowershop pico eci here
-		}
+  rule place_bid {
+    select when driver bid
+    pre {
+      delivery_charge = getProposal()
+      order_id = event:attr("orderID")
+      //flowershop_id = ""  **Set flowershop pico eci here
+    }
         event:send({
           "eci": flowershop_id, "eic": "bid",
           "domain": "shop", "type": "handle_bid",
@@ -275,4 +318,5 @@ ruleset gossip {
           }
         })
 
+}
 }
