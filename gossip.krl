@@ -77,6 +77,21 @@ ruleset gossip {
       }).reduce(function(a,b){a.append(b)})
     }
   }
+  rule job_confirmed {
+    select when job confirmed
+    pre {
+      // todo: do things here
+    }
+    schedule notification event "arrived" at time:add(time:now(), {"seconds": 5})
+      attributes event:attrs()
+
+  }
+  rule job_completed {
+    select when notification arrived
+    pre {
+      //todo: fill this out
+    }
+  }
   rule receive_message {
     select when order received
     pre {
@@ -84,17 +99,36 @@ ruleset gossip {
       order = event:attr("orderNumber").klog("order")
       address = event:attr("address").klog("address")
       order = event:attr("order").klog("order")
+      message = {"MessageID": flowershopId + ":" + ent:messages{[flowershopId]}.length(),
+                 "flowershopId": flowershopId, "order": order, "address": address}
     }
+    
     always {
       
       ent:messages := ent:messages.defaultsTo({});
       ent:messages{[flowershopId]} := ent:messages{[flowershopId]}.defaultsTo([]);
-      message = {"MessageID": flowershopId + ":" + ent:messages{[flowershopId]}.length(),
-                 "flowershopId": flowershopId, "order": order, "address": address};
       ent:all_messages := ent:all_messages.defaultsTo([]).append(message);
       ent:messages{[flowershopId]} := ent:messages{[flowershopId]}.append(message)
     }
   }
+  // rule receive_message {
+  //   select when order received
+  //   pre {
+  //     flowershopId = event:attr("flowershopId").klog("flowershopId")
+  //     order = event:attr("orderNumber").klog("order")
+  //     address = event:attr("address").klog("address")
+  //     order = event:attr("order").klog("order")
+  //   }
+  //   always {
+      
+  //     ent:messages := ent:messages.defaultsTo({});
+  //     ent:messages{[flowershopId]} := ent:messages{[flowershopId]}.defaultsTo([]);
+  //     message = {"MessageID": flowershopId + ":" + ent:messages{[flowershopId]}.length(),
+  //                "flowershopId": flowershopId, "order": order, "address": address};
+  //     ent:all_messages := ent:all_messages.defaultsTo([]).append(message);
+  //     ent:messages{[flowershopId]} := ent:messages{[flowershopId]}.append(message)
+  //   }
+  // }
   rule gossip_switch {
     select when process gossip_switch
     pre {
