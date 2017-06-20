@@ -79,6 +79,13 @@ ruleset gossip {
       }).reduce(function(a,b){a.append(b)})
     }
   }
+  rule place_bid {
+    select when job bid
+    pre {
+      flowershopId = event:attr("flowershopId")
+      jobNum = event:attr("jobNum")
+    }
+  }
   rule job_confirmed {
     select when job confirmed
     pre {
