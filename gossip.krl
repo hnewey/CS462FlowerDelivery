@@ -11,15 +11,15 @@ ruleset gossip {
     name "gossip"
     use module io.picolabs.pico alias wrangler
     use module Subscriptions
-		use module edmunds_keys
-		use module edmunds_api
-										with api_key = keys:edmunds("api_key")
+    use module edmunds_keys
+    use module edmunds_api
+                    with api_key = keys:edmunds("api_key")
     shares allMessages, unorgMessages, listSchedule
   }
   global {
-    getProposal = function () {
-			proposal = edmunds_api:find_vin("JNKCV51E06M521497")
-    }
+    // getProposal = function () {
+    //   proposal = edmunds_api:find_vin("JNKCV51E06M521497")
+    // }
     allMessages = function() {
       ent:all_messages.unique().filter(function(x){not x.isnull()})
     }
@@ -91,12 +91,14 @@ ruleset gossip {
     pre {
       // todo: do things here
     }
-    schedule notification event "arrived" at time:add(time:now(), {"seconds": 5})
-      attributes event:attrs()
+    always {
+      schedule job event "arrived" at time:add(time:now(), {"seconds": 5})
+        attributes event:attrs()
+    }
 
   }
   rule job_completed {
-    select when notification arrived
+    select when job arrived
     pre {
       //todo: fill this out
     }
@@ -301,13 +303,13 @@ ruleset gossip {
       ent:all_messages := ent:all_messages.defaultsTo([]).append(message)
     }
   }
-	rule place_bid {
-		select when driver bid
-		pre {
-			delivery_charge = getProposal()
-			order_id = event:attr("orderID")
-			//flowershop_id = ""  **Set flowershop pico eci here
-		}
+  rule place_bid {
+    select when driver bid
+    pre {
+      delivery_charge = getProposal()
+      order_id = event:attr("orderID")
+      //flowershop_id = ""  **Set flowershop pico eci here
+    }
         event:send({
           "eci": flowershop_id, "eic": "bid",
           "domain": "shop", "type": "handle_bid",
@@ -316,4 +318,5 @@ ruleset gossip {
           }
         })
 
+}
 }
