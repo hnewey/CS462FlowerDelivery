@@ -17,9 +17,9 @@ ruleset gossip {
     shares allMessages, unorgMessages, listSchedule
   }
   global {
-    // getProposal = function () {
-    //   proposal = edmunds_api:find_vin("JNKCV51E06M521497")
-    // }
+    getProposal = function () {
+       edmunds_api:find_vin("JNKCV51E06M521497")
+     }
     allMessages = function() {
       ent:all_messages.unique().filter(function(x){not x.isnull()})
     }
