@@ -1,3 +1,11 @@
+// to send a new order 
+//   select when order received
+//       flowershopId = event:attr("flowershopId").klog("flowershopId")
+//       order = event:attr("orderNumber").klog("order")
+//       address = event:attr("address").klog("address")
+//       order = event:attr("order").klog("order")
+The 
+
 ruleset gossip {
   meta {
     name "gossip"
@@ -6,6 +14,10 @@ ruleset gossip {
     shares allMessages, unorgMessages, listSchedule
   }
   global {
+    // TODO: implement this
+    getProposal = function () {
+
+    }
     allMessages = function() {
       ent:all_messages.unique().filter(function(x){not x.isnull()})
     }
