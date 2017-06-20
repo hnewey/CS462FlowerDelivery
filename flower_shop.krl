@@ -1,6 +1,9 @@
 ruleset flower_shop {
     meta {
-
+      use module twilio_keys 
+      use module twilio_api alias twilio
+          with account_sid = keys:twilio("account_sid")
+               auth_token =  keys:twilio("auth_token")
     }
 
     global {
@@ -39,25 +42,28 @@ ruleset flower_shop {
 						delivery_charge = event:attr("delivery_charge")
 						driver_id = event:attr("driver_id")
         }
-				if driver_id then {
+	if driver_id then {
+
   	      event:send({
     	      "eci": driver_id, "eic": "bid_accepted",
     	      "domain": "driver", "type": "bid_accepted",
     	      "attrs": {
     	        "order": order
 	   	      }
-    	    })
-				}
-				fired {
-					raise notify event "new_message"
-						attributes { "message": "Your order: " + event:attr("order_id") + " is out for delivery. Your driver " +
-													"has estimated a delivery charge of $" + delivery_charge 
-													 }
-				}
+    	    });
+	}
+	fired {
+	    twilio:send_sms(event:attr("to").defaultsTo("+enter number here"),
+                    event:attr("from").defaultsTo("+13852194839"),
+                    "Your order: " + event:attr("order_id") + " is out for delivery. Your driver " +
+				"has estimated a delivery charge of $" + delivery_charge
+                   );
+}
     }
 
-    rule finish_job {
+//    rule finish_job {
 
-    }
+  //  }
 
 }
+
