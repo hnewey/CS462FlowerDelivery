@@ -14,10 +14,9 @@ ruleset flower_shop {
         select when shop new_order
         pre {
             flower = event:attr("flower")
-            phone = event:attr("phone")
+            phone = event:attr("phone").defaultsTo("+18014739251")
             address = event:attr("address")
             orderID = ent:counter.defaultsTo(0)
-            ent:counter := ent:counter + 1
             orderInfo = {
                 "orderID": orderID,
                 "flower": flower,
@@ -26,12 +25,17 @@ ruleset flower_shop {
                 "status": "processing"
             }
         }
-        if flower && phone && address then
-            noop()
-
         fired {
-            ent:orders := ent:orders.defaultsTo({}).put(orderID, orderInfo);
-            //todo send broadcast to drivers
+            ent:counter := ent:counter + 1;
+            ent:orders := ent:orders.defaultsTo({}).put(orderID, orderInfo)
+  	      	event:send({
+    	      	"eci": "cj4689a42000be1duanmxuinx", "eic": "notify driver",
+    	      	"domain": "order", "type": "received",
+    	      	"attrs": {
+    	        	"orderID": ent:orders{[order, "orderID"]},
+								"flowershopECI": meta:eci
+	   	      	}
+	    	    });
         }
 
     }
@@ -49,16 +53,17 @@ ruleset flower_shop {
     	      "eci": driver_id, "eic": "bid_accepted",
     	      "domain": "driver", "type": "bid_accepted",
     	      "attrs": {
-    	        "order": ent:orders{[order]}
+    	        	"orderID": ent:orders{[order, "orderID"]},
+								"flowershopECI": meta:eci
 	   	      }
     	    });
 	    }
 	    fired {
-	        twilio:send_sms(event:attr("to").defaultsTo("+enter number here"),
+	        twilio:send_sms(ent:orders{[order, "phone"]},
                 event:attr("from").defaultsTo("+13852194839"),
                 "Your order: " + event:attr("order_id") + " is out for delivery. Your driver " +
 				"has estimated a delivery charge of $" + delivery_charge);
-            ent:orders{[order]} := ent.orders{[order,"status"]}.put{"delivering"};
+            ent:orders{[order]} := ent.orders{[order,"status"]}.put{"delivering"}
         }
     }
 
