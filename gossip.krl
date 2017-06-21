@@ -105,6 +105,13 @@ ruleset gossip {
     pre {
       attrs = event:attrs().klog("all attributes")
     }
+    event:send(
+      {"eci":attrs{"flowershopECI"}, "eic": "job done",
+      "domain": "shop", "type": "finish",
+      "attrs": {
+        "orderID": attrs{"orderID"}
+      }
+   })
   }
   rule receive_message {
     select when order received

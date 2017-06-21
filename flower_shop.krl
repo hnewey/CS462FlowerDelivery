@@ -25,30 +25,30 @@ ruleset flower_shop {
                 "status": "processing"
             }
         }
-        fired {
-            ent:counter := ent:counter + 1;
-            ent:orders := ent:orders.defaultsTo({}).put(orderID, orderInfo)
-  	      	event:send({
+ 	      	event:send({
     	      	"eci": "cj4689a42000be1duanmxuinx", "eic": "notify driver",
     	      	"domain": "order", "type": "received",
     	      	"attrs": {
     	        	"orderID": ent:orders{[order, "orderID"]},
 								"flowershopECI": meta:eci
 	   	      	}
-	    	    });
-        }
+	    	    }.klog("event sent"))
+
+        fired {
+            ent:counter := ent:counter + 1;
+            ent:orders := ent:orders.defaultsTo({}).put(orderID, orderInfo)
+         }
 
     }
 
     rule handle_bid {
         select when shop handle_bid
         pre {
-            order = event:attr("order_id")
+            order = event:attr("order_id").klog("order_id: ")
 			delivery_charge = event:attr("delivery_charge")
-			driver_id = event:attr("driver_id")
+			driver_id = event:attr("driver_id").klog("driver_id is: ")
         }
-	    if driver_id && ent:orders>< order && ent:orders{[order,"status"]} == "processing" then {
-
+	if driver_id && ent:orders>< order && ent:orders{[order,"status"]} == "processing" then 
   	      event:send({
     	      "eci": driver_id, "eic": "bid_accepted",
     	      "domain": "driver", "type": "bid_accepted",
@@ -56,26 +56,28 @@ ruleset flower_shop {
     	        	"orderID": ent:orders{[order, "orderID"]},
 								"flowershopECI": meta:eci
 	   	      }
-    	    });
-	    }
+    	    }.klog("bid accepted"))
 	    fired {
 	        twilio:send_sms(ent:orders{[order, "phone"]},
                 event:attr("from").defaultsTo("+13852194839"),
                 "Your order: " + event:attr("order_id") + " is out for delivery. Your driver " +
 				"has estimated a delivery charge of $" + delivery_charge);
-            ent:orders{[order]} := ent.orders{[order,"status"]}.put{"delivering"}
+            ent:orders{[order]} := ent:orders{[order]}.put("status", "delivering")
         }
     }
 
     rule finish_job {
         select when shop finish
         pre {
-            order = event:attr("order")
+            order = event:attr("orderID")
         }
         if ent:orders >< order then
             noop()
         fired {
-            ent:orders{[order]} := ent:orders{[order,"status"]}.put{"finished"}
+	        twilio:send_sms(ent:orders{[order, "phone"]},
+                event:attr("from").defaultsTo("+13852194839"),
+                "Thank for using our flower shop. Your order has arrived");
+            ent:orders{[order]} := ent:orders{[order]}.put("status", "finished")
         }
     }
 
