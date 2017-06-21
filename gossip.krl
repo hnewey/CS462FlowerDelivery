@@ -1,6 +1,6 @@
 // to send a new order 
 //   select when order received
-//       flowershopId = event:attr("flowershopId").klog("flowershopId")
+//     flowershopECI = event:attr("flowershopECI").klog("flowershopECI")
 //       order = event:attr("orderNumber").klog("order")
 //       address = event:attr("address").klog("address")
 //       order = event:attr("order").klog("order")
@@ -79,53 +79,56 @@ ruleset gossip {
       }).reduce(function(a,b){a.append(b)})
     }
   }
-  rule place_bid {
-    select when job bid
-    pre {
-      flowershopId = event:attr("flowershopId")
-      jobNum = event:attr("jobNum")
-    }
-  }
+  // rule place_bid {
+  //   select when job bid
+  //   pre {
+  //     flowershopECI = event:attr("flowershopECI")
+  //     jobNum = event:attr("jobNum")
+  //   }
+  //   event:send({
+
+  //   })
+  // }
   rule job_confirmed {
-    select when job confirmed
+    select when driver bid_accepted
     pre {
       // todo: do things here
     }
     always {
       schedule job event "arrived" at time:add(time:now(), {"seconds": 5})
-        attributes event:attrs()
+        attributes event:attrs().klog("all attributes")
     }
 
   }
   rule job_completed {
     select when job arrived
     pre {
-      //todo: fill this out
+      attrs = event:attrs().klog("all attributes")
     }
   }
   rule receive_message {
     select when order received
     pre {
-      flowershopId = event:attr("flowershopId").klog("flowershopId")
-      order = event:attr("orderNumber").klog("order")
+      flowershopECI = event:attr("flowershopECI").klog("flowershopECI")
+      order = event:attr("orderID").klog("order")
       address = event:attr("address").klog("address")
       order = event:attr("order").klog("order")
-      message = {"MessageID": flowershopId + ":" + ent:messages{[flowershopId]}.length(),
-                 "flowershopId": flowershopId, "order": order, "address": address}
+      message = {"MessageID": flowershopECI + ":" + ent:messages{[flowershopECI]}.length(),
+                 "flowershopECI": flowershopECI, "order": order, "address": address}
     }
     
     always {
       
       ent:messages := ent:messages.defaultsTo({});
-      ent:messages{[flowershopId]} := ent:messages{[flowershopId]}.defaultsTo([]);
+      ent:messages{[flowershopECI]} := ent:messages{[flowershopECI]}.defaultsTo([]);
       ent:all_messages := ent:all_messages.defaultsTo([]).append(message);
-      ent:messages{[flowershopId]} := ent:messages{[flowershopId]}.append(message)
+      ent:messages{[flowershopECI]} := ent:messages{[flowershopECI]}.append(message)
     }
   }
   // rule receive_message {
   //   select when order received
   //   pre {
-  //     flowershopId = event:attr("flowershopId").klog("flowershopId")
+  //     flowershopECI = event:attr("flowershopECI").klog("flowershopECI")
   //     order = event:attr("orderNumber").klog("order")
   //     address = event:attr("address").klog("address")
   //     order = event:attr("order").klog("order")
@@ -133,11 +136,11 @@ ruleset gossip {
   //   always {
       
   //     ent:messages := ent:messages.defaultsTo({});
-  //     ent:messages{[flowershopId]} := ent:messages{[flowershopId]}.defaultsTo([]);
-  //     message = {"MessageID": flowershopId + ":" + ent:messages{[flowershopId]}.length(),
-  //                "flowershopId": flowershopId, "order": order, "address": address};
+  //     ent:messages{[flowershopECI]} := ent:messages{[flowershopECI]}.defaultsTo([]);
+  //     message = {"MessageID": flowershopECI + ":" + ent:messages{[flowershopECI]}.length(),
+  //                "flowershopECI": flowershopECI, "order": order, "address": address};
   //     ent:all_messages := ent:all_messages.defaultsTo([]).append(message);
-  //     ent:messages{[flowershopId]} := ent:messages{[flowershopId]}.append(message)
+  //     ent:messages{[flowershopECI]} := ent:messages{[flowershopECI]}.append(message)
   //   }
   // }
   rule gossip_switch {
@@ -308,10 +311,11 @@ ruleset gossip {
     pre {
       delivery_charge = getProposal()
       order_id = event:attr("orderID")
+      flowershopECI = event:attr("flowershopECI")
       //flowershop_id = ""  **Set flowershop pico eci here
     }
         event:send({
-          "eci": flowershop_id, "eic": "bid",
+          "eci": flowershopECI, "eic": "bid",
           "domain": "shop", "type": "handle_bid",
           "attrs": {
             "delivery_charge": delivery_charge, "order_id": order_id, "driver_id": meta:eci
