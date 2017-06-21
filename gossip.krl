@@ -119,7 +119,7 @@ ruleset gossip {
     select when order received
     pre {
       flowershopECI = event:attr("flowershopECI").klog("flowershopECI")
-      order = event:attr("orderID").klog("order")
+      orderID = event:attr("orderID").klog("orderID")
       address = event:attr("address").klog("address")
       order = event:attr("order").klog("order")
       message = {"MessageID": flowershopECI + ":" + ent:messages{[flowershopECI]}.length(),
