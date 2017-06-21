@@ -1,0 +1,5 @@
+
+localhost:8080/sky/event/cj467v1ut000nk2dud9770ddw/ajc22/gossip/activate
+http://localhost:8080/sky/event/cj467uz76000kk2duerex2thv/ajc2/gossip/subscribe?subscriber=cj467v1ut000nk2dud9770ddw
+http://localhost:8080/sky/event/cj467uz76000kk2duerex2thv/ajc22/process/gossip_switch?status=true
+http://localhost:8080/sky/cloud/cj467v1ut000nk2dud9770ddw/gossip/allMessages
