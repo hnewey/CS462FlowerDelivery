@@ -92,24 +92,27 @@ ruleset gossip {
   rule job_confirmed {
     select when driver bid_accepted
     pre {
-      // todo: do things here
+      orderID = event:attr("orderID")
+			flowershopECI = event:attr("flowershopECI")
     }
     always {
       schedule job event "arrived" at time:add(time:now(), {"seconds": 5})
-        attributes event:attrs().klog("all attributes")
+        attributes {"orderID": orderID, "flowershopECI": flowershopECI}
     }
 
   }
   rule job_completed {
     select when job arrived
     pre {
+			orderID = event:attr("orderID")
+			flowershopECI = event:attr("flowershopECI")
       attrs = event:attrs().klog("all attributes")
     }
     event:send(
-      {"eci":attrs{"flowershopECI"}, "eic": "job done",
+      {"eci":flowershopECI, "eic": "job done",
       "domain": "shop", "type": "finish",
       "attrs": {
-        "orderID": attrs{"orderID"}
+        "orderID": orderID
       }
    })
   }
