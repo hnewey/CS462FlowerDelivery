@@ -96,7 +96,7 @@ ruleset gossip {
 			flowershopECI = event:attr("flowershopECI")
     }
     always {
-      schedule job event "arrived" at time:add(time:now(), {"seconds": 5})
+      schedule job event "arrived" at time:add(time:now(), {"seconds": 10})
         attributes {"orderID": orderID, "flowershopECI": flowershopECI}
     }
 
@@ -105,8 +105,7 @@ ruleset gossip {
     select when job arrived
     pre {
 			orderID = event:attr("orderID")
-			flowershopECI = event:attr("flowershopECI")
-      attrs = event:attrs().klog("all attributes")
+			flowershopECI = event:attr("flowershopECI").klog("flowershopECI: ")
     }
     event:send(
       {"eci":flowershopECI, "eic": "job done",

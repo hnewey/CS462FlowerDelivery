@@ -71,8 +71,6 @@ ruleset flower_shop {
         pre {
             order = event:attr("orderID")
         }
-        if ent:orders >< order then
-            noop()
         fired {
 	        twilio:send_sms(ent:orders{[order, "phone"]},
                 event:attr("from").defaultsTo("+13852194839"),
